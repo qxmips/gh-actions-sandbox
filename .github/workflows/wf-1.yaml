@@ -1,0 +1,47 @@
+---
+name: "WF-1"
+on:
+  push:
+
+# JOBS
+jobs:
+
+  Job1:
+    name: Job  named  Job1
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:5.7.36
+        env:
+          MYSQL_ROOT_PASSWORD:  "1234567"
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Python version
+        run: |
+          python --version
+
+  Job2:
+    name: Job  named  Job2
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: bash ls
+        run: |
+          ls -alh
+      - name: Python version
+        run: |
+          python --version
