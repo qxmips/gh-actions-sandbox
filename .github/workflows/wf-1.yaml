@@ -70,6 +70,7 @@ jobs:
         id: reduce
         run: |
           echo "${{ toJson(steps.filter.outputs) }}"
-          CONTAINERS=$(jq -c --raw-output '.changed_files | fromjson | .[] |= sub("(?<filepath>(?<first_directory>(?<root1>[/]?)[^/]+/)(?<second_directory>(?<root2>[/]?)[^/]+)(?<extra_paths>.+))"; "\(.second_directory)") | unique' changes.json)
+          # .changed_files | fromjson | .[] |= sub("(?<first_directory>(?<root2>[/]?)[^/]+)(?<extra_paths>.+)"; "\(.first_directory)") | unique
+          CONTAINERS=$(jq -c --raw-output '.changed_files | fromjson | .[] |= sub("(?<filepath>(?<first_directory>(?<root1>[/]?)[^/]+)/(?<second_directory>(?<root2>[/]?)[^/]+)(?<extra_paths>.+))"; "\(.first_directory)") | unique' changes.json)
           echo "$CONTAINERS"
           echo "::set-output name=containers::${CONTAINERS}"
