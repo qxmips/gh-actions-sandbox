@@ -1,51 +1,71 @@
----
-name: "WF-1"
+name: Monorepo-wf-1
+
 on:
+  workflow_dispatch:
+    inputs:
+      modules:
+        description: 'List the modules to build, white space delimited'
+        required: true
+
   push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
 
-# JOBS
+concurrency: 
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }} 
+  cancel-in-progress: true
+
 jobs:
-  Job1:
-    name: Job  named  Job1
-    runs-on: ${{ matrix.os }}
-    strategy:
-     matrix:
-      os: [ubuntu-18.04, ubuntu-20.04]
-      python: [3.7, 3.8, 3.9]
-    services:
-      mysql:
-        image: mysql:5.7.36
+  initialize_ci:
+    runs-on: ubuntu-20.04
+    outputs:
+      pr_number: ${{ steps.findPr.outputs.number }}
+    steps:
+      - uses: hmarr/debug-action@v2
+
+      - name: Dump GitHub context
         env:
-          MYSQL_ROOT_PASSWORD:  "1234567"
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-    steps:
-
-      - uses: actions/checkout@v2
-
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v2
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: |
+          echo "$GITHUB_CONTEXT"
+    
+      - uses: jwalton/gh-find-current-pr@v1
+        id: findPr
         with:
-          python-version: ${{ matrix.python }}
+          # Can be "open", "closed", or "all".  Defaults to "open".
+          state: open
 
-      - name: Python version
-        run: |
-          python --version
+      # This will echo "Your PR is 7", or be skipped if there is no current PR.
+      - run: echo "$PR"
+        if: success() && steps.findPr.outputs.number
+        env:
+          PR: ${{ toJson(steps.findPr.outputs) }}
 
-  Job2:
-    name: Job  named  Job2
-    runs-on: ubuntu-latest
-    needs: [Job1]
+  changes:
+    name: Get changes
+    runs-on: ubuntu-20.04
+    # outputs:
+    #   matrix: "{\"container\": ${{ steps.reduce.outputs.containers }} }"
     steps:
-      - uses: actions/checkout@v2
-      - name: bash ls
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          list-files: json
+          filters: |
+            changed:
+            - 'apps/**'
+      - name: Store changed files in file
+        run: echo '${{ toJson(steps.filter.outputs) }}' > changes.json
+
+      - name: Store changed containers
+        id: reduce
         run: |
-          ls -alh
-      - name: Python version
-        run: |
-          python --version
+          echo "${{ toJson(steps.filter.outputs) }}"
+          #CONTAINERS=$(jq -c --raw-output '.changed_files | fromjson | .[] |= sub("(?<filepath>(?<first_directory>(?<root1>[/]?)[^/]+/)(?<second_directory>(?<root2>[/]?)[^/]+)(?<extra_paths>.+))"; "\(.second_directory)") | unique' changes.json)
+          #echo "::set-output name=containers::${CONTAINERS}"
