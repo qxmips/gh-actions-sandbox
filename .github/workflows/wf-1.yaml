@@ -47,6 +47,9 @@ jobs:
   changes:
     name: Get changes
     runs-on: ubuntu-20.04
+    needs:
+      - initialize_ci
+
     # outputs:
     #   matrix: "{\"container\": ${{ steps.reduce.outputs.containers }} }"
     steps:
@@ -67,5 +70,6 @@ jobs:
         id: reduce
         run: |
           echo "${{ toJson(steps.filter.outputs) }}"
-          #CONTAINERS=$(jq -c --raw-output '.changed_files | fromjson | .[] |= sub("(?<filepath>(?<first_directory>(?<root1>[/]?)[^/]+/)(?<second_directory>(?<root2>[/]?)[^/]+)(?<extra_paths>.+))"; "\(.second_directory)") | unique' changes.json)
-          #echo "::set-output name=containers::${CONTAINERS}"
+          CONTAINERS=$(jq -c --raw-output '.changed_files | fromjson | .[] |= sub("(?<filepath>(?<first_directory>(?<root1>[/]?)[^/]+/)(?<second_directory>(?<root2>[/]?)[^/]+)(?<extra_paths>.+))"; "\(.second_directory)") | unique' changes.json)
+          echo "$CONTAINERS"
+          echo "::set-output name=containers::${CONTAINERS}"
