@@ -62,7 +62,7 @@ jobs:
           list-files: json
           filters: |
             changed:
-            - '*'
+            - './**'
       - name: Store changed files in file
         run: echo '${{ toJson(steps.filter.outputs) }}' > changes.json
 
