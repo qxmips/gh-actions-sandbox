@@ -50,8 +50,8 @@ jobs:
     needs:
       - initialize_ci
 
-    # outputs:
-    #   matrix: "{\"container\": ${{ steps.reduce.outputs.containers }} }"
+    outputs:
+      matrix: "{\"services\": ${{ steps.reduce.outputs.services }} }"
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -66,11 +66,25 @@ jobs:
       - name: Store changed files in file
         run: echo '${{ toJson(steps.filter.outputs) }}' > changes.json
 
-      - name: Store changed containers
+      - name: Store changed apps
         id: reduce
         run: |
           echo "${{ toJson(steps.filter.outputs) }}"
           # .changed_files | fromjson | .[] |= sub("(?<first_directory>(?<root2>[/]?)[^/]+)(?<extra_paths>.+)"; "\(.first_directory)") | unique
-          CONTAINERS=$(jq -c --raw-output '.changed_files | fromjson | .[] |= sub("(?<filepath>(?<first_directory>(?<root1>[/]?)[^/]+)/(?<second_directory>(?<root2>[/]?)[^/]+)(?<extra_paths>.+))"; "\(.first_directory)") | unique' changes.json)
-          echo "$CONTAINERS"
-          echo "::set-output name=containers::${CONTAINERS}"
+          # https://jqplay.org/s/HSOZ2Duk7l
+          SVC=$(jq -c --raw-output '.changed_files | fromjson | .[] |= sub("(?<filepath>(?<first_directory>(?<root1>[/]?)[^/]+)/(?<second_directory>(?<root2>[/]?)[^/]+)(?<extra_paths>.+))"; "\(.first_directory)") | unique' changes.json)
+          echo "$APPS"
+          echo "::set-output name=services::${SVC}"
+
+  build:
+    name: Build
+    runs-on: ubuntu-20.04
+    needs:
+      - changes
+    strategy:
+      matrix: ${{ fromJson(needs.changes.outputs.matrix) }}
+      fail-fast: false
+    if: "!contains(github.event.head_commit.message, '[ci-skip]')"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
