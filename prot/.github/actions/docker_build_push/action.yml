@@ -1,0 +1,97 @@
+name: 'docker image: build and push'
+description: 'Build, Tag, and Push the Image to  docker hub'
+inputs:
+  service:
+    description: 'service name'
+    required: true
+    default: latest
+  dockerhub_user:
+    description: 'Dockerhub user name'
+    required: true
+    default: prtngitactions
+  dockerhub_pass:
+    description: 'Dockerhub user password'
+    required: true
+  build_args:
+      description: 'build args for docker image'
+      required: false
+
+runs:
+  using: "composite"
+  steps:
+
+      - name: Set Global Variables
+        id: global_variables
+        run: |
+              if [[ ${GITHUB_EVENT_NAME} == "pull_request" ]]; then
+                GITHUB_CLEAN_REF_NAME=${GITHUB_HEAD_REF//\//-}
+              else
+                GITHUB_CLEAN_REF_NAME=${GITHUB_REF_NAME//\//-}
+              fi
+              echo "GITHUB_CLEAN_REF_NAME=${GITHUB_CLEAN_REF_NAME}"
+              commit_id=$(git rev-parse --short HEAD)
+              echo "commit_id=$commit_id"
+              if test -f "baseversion";then
+                 param=`grep "baseVersion=" baseversion`
+                 base_version=${param#*=}
+                 echo "base_version=$base_version"
+              fi
+              echo "::set-output name=github_clean_ref_name::$GITHUB_CLEAN_REF_NAME"
+              echo "::set-output name=commit_id::$commit_id"
+              echo "::set-output name=base_version::$base_version"
+        shell: bash
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ inputs.dockerhub_user }}
+          password: ${{ inputs.dockerhub_pass }}
+
+      - name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: amd64,arm64
+
+      - name: Set up Docker Context for Buildx
+        id: context
+        run: |
+          docker context create builders
+        shell: bash
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          version: latest
+          endpoint: builders
+
+      - name: Set up  Docker meta
+        id: docker_meta
+        uses: docker/metadata-action@v3
+        with:
+            images: proteantecs/${{ inputs.service  }}
+            labels: |
+              maintainer=proteantecs
+              org.opencontainers.image.vendor=proteantecs
+            tags: |
+              type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+              type=ref,event=branch
+              type=ref,event=pr, prefix=${{ steps.global_variables.outputs.github_clean_ref_name }}-pr-
+              type=sha, prefix=${{ steps.global_variables.outputs.github_clean_ref_name }}-,suffix=-${{ github.run_number }},format=short
+              type=raw,enable=true,priority=200,prefix=${{ steps.global_variables.outputs.github_clean_ref_name }}-,suffix=-${{ github.run_number }},value=${{ steps.global_variables.outputs.base_version }}
+              type=raw,enable=true,priority=200,value=${{ steps.global_variables.outputs.github_clean_ref_name }}
+
+      - name: Docker build and push
+        id: docker_build_push
+        uses: docker/build-push-action@v2
+        with:
+          file:  ./services/${{ inputs.service }}/Dockerfile
+          context: .
+          build-args: |
+            ${{ inputs.build_args }}
+          push: false # debug TODO: change to true
+          tags: |
+            ${{ steps.docker_meta.outputs.tags }}
+          labels: |
+            ${{ steps.docker_meta.outputs.labels }}

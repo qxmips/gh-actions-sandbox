@@ -1,0 +1,125 @@
+name: Python CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      modules:
+        description: 'List the modules to build, white space delimited'
+        required: true
+
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+
+
+  initialize_ci:
+    runs-on: [ self-hosted, k8s_runner ]
+    outputs:
+      pr_number: ${{ steps.findPr.outputs.number }}
+    steps:
+
+      - uses: hmarr/debug-action@v2
+
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: |
+          echo "$GITHUB_CONTEXT"
+    
+      - uses: jwalton/gh-find-current-pr@v1
+        id: findPr
+        with:
+          # Can be "open", "closed", or "all".  Defaults to "open".
+          state: open
+
+      # This will echo "Your PR is 7", or be skipped if there is no current PR.
+      - run: echo "$PR"
+        if: success() && steps.findPr.outputs.number
+        env:
+          PR: ${{ toJson(steps.findPr.outputs) }}
+
+
+  changes:
+    name: Get changes
+    runs-on: [ self-hosted, k8s_runner ]
+    needs:
+      - initialize_ci
+    if: (needs.initialize_ci.outputs.pr_number == '' && github.event_name == 'push') || github.event_name != 'push'
+    outputs:
+      matrix: ${{ steps.changed_services.outputs.services }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: List changed files
+        id: changed_files
+        uses: tj-actions/changed-files@v18.6
+        with:
+          # assume that  each directory under ./services is a python microservice
+          files: |
+            services/**
+
+      - name: Get changed services
+        id: changed_services
+        # https://jqplay.org/s/-8i6I4x2bs
+        # extract service directory name 
+        run: |
+          SVC=$(echo '${{ toJson(steps.changed_files.outputs ) }}' | jq -c --raw-output '.all_modified_files | split(" ")  | .[] |= sub("(?<first_directory>(?<root1>[/]?)[^/]+)/(?<second_directory>(?<root2>[/]?)[^/]+).+"; "\(.second_directory)")| unique')
+          echo "services to build: $SVC"
+          echo "::set-output name=services::${SVC}"
+
+
+  build:
+      name: Test and Build
+      runs-on: [ self-hosted, k8s_runner ]
+      needs:
+        - changes
+      if: ${{ needs.changes.outputs.matrix != '[]' && needs.changes.outputs.matrix != '' }}
+      strategy:
+        matrix: 
+          services: ${{ fromJson(needs.changes.outputs.matrix) }}
+          python: ["3.7.6"]
+        fail-fast: false
+      steps:
+
+        - name: Checkout
+          uses: actions/checkout@v2
+
+        - name: Set up Python  ${{ matrix.python }}
+          uses: actions/setup-python@v3
+          with:
+            python-version: ${{ matrix.python }}
+            architecture: x64
+
+        - name: Test python
+          id: test
+          run: |
+           cd ./services/${{ matrix.services }}
+           chmod +x ./*.sh
+           ./install_requirements.sh ${{ secrets.PYPI_USERNAME }} ${{ secrets.PYPI_PASSWORD }} ${{ secrets.PYPI_HOST }} ${{ secrets.PYPI_PORT }}
+           ./run-tox.sh
+           
+        - name: Docker build and push
+          id: docker_build
+          uses: ./.github/actions/docker_build_push
+          with:
+            service: ${{ matrix.services }}
+            dockerhub_pass: ${{ secrets.DOCKERHUB_PASS }}
+            build_args: |
+              APPLICATION=${{ matrix.services }}
+              JENKINS_BUILD_NUMBER=${{ github.sha }}
+              USERNAME=${{ secrets.pypi_username }}
+              PASSWORD=${{ secrets.pypi_password }}
+              HOST=${{ secrets.pypi_host }}
+              PORT=${{ secrets.pypi_port }}
+
+
+
+
