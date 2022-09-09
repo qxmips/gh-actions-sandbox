@@ -42,7 +42,7 @@ jobs:
         with:
           github_clean_ref_name: ${{ steps.global_var.outputs.github_clean_ref_name }}
           slack_bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
-          step: "init"
+          step: "pr"
           status: "In Progress"
           color: "dbab09"
           channel_id: "C03C0QXKQCQ"
