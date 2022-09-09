@@ -42,12 +42,17 @@ jobs:
           # For posting a rich message using Block Kit
           payload: |
             {
-              "text": "CI for  <${{ github.event.pull_request.html_url || github.event.head_commit.url }}|${{ github.event.repository.name }} ",
+              "text": "CI for  <${{ github.event.pull_request.html_url || github.event.head_commit.url }} | ${{ github.event.repository.name }} >",
               "attachments": [
                 {
                   "pretext": "Initiator: ${{ github.actor }}",
                   "color": "dbab09",
                   "fields": [
+                    {
+                      "title": "Step",
+                      "short": true,
+                      "value": "test"
+                    },
                     {
                       "title": "Status",
                       "short": true,
