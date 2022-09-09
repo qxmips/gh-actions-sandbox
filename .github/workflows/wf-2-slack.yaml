@@ -42,10 +42,10 @@ jobs:
           # For posting a rich message using Block Kit
           payload: |
             {
-              "text": "Deployment started (In Progress)",
+              "text": "CI for ${{ github.event.repository.name }}",
               "attachments": [
                 {
-                  "pretext": "Deployment started",
+                  "pretext": "Step: init",
                   "color": "dbab09",
                   "fields": [
                     {
