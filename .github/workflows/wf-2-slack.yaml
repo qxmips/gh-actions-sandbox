@@ -47,6 +47,8 @@ jobs:
           color: "dbab09"
           channel_id: "C03C0QXKQCQ"
           url: "${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+          info_key: "docker image"
+          info_val: "adfasf/dsfsdf:v0.0.01"
 
 
       # - name: set  event-type
