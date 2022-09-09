@@ -48,23 +48,23 @@ jobs:
           url: "${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
 
 
-      - name: set  event-type
-        run: |
-          sleep  15
+      # - name: set  event-type
+      #   run: |
+      #     sleep  15
   
 
-      - name: slack notify
-        id: notify_2
-        uses: ./.github/actions/slack-notify
-        with:
-          github_clean_ref_name: ${{ steps.global_var.outputs.github_clean_ref_name }}
-          slack_bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
-          step: "init"
-          status: "Completed"
-          color: "28a745"
-          channel_id: "C03C0QXKQCQ"
-          update_ts: "${{ steps.notify.outputs.ts }}"
-          url: "${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+      # - name: slack notify
+      #   id: notify_2
+      #   uses: ./.github/actions/slack-notify
+      #   with:
+      #     github_clean_ref_name: ${{ steps.global_var.outputs.github_clean_ref_name }}
+      #     slack_bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
+      #     step: "init"
+      #     status: "Completed"
+      #     color: "28a745"
+      #     channel_id: "C03C0QXKQCQ"
+      #     update_ts: "${{ steps.notify.outputs.ts }}"
+      #     url: "${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
 
       # - name: Post to a Slack channel
       #   id: slack
