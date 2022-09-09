@@ -1,0 +1,104 @@
+name: slack notifications
+
+on:
+  workflow_dispatch:
+    inputs:
+      modules:
+        description: 'List the modules to build, white space delimited'
+        required: true
+
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+concurrency: 
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }} 
+  cancel-in-progress: true
+
+jobs:
+  initialize_ci:
+    runs-on: ubuntu-20.04
+    outputs:
+      pr_number: ${{ steps.findPr.outputs.number }}
+    steps:
+      - uses: hmarr/debug-action@v2
+
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: |
+          echo "$GITHUB_CONTEXT"
+
+      - name: Post to a Slack channel
+        id: slack
+        uses: slackapi/slack-github-action@v1.21.0
+        with:
+          # Slack channel id, channel name, or user id to post message.
+          # See also: https://api.slack.com/methods/chat.postMessage#channels
+          channel-id: 'C03C0QXKQCQ'
+          # For posting a rich message using Block Kit
+          payload: |
+            {
+              "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+
+  # changes:
+  #   name: Get changes
+  #   runs-on: ubuntu-20.04
+  #   needs:
+  #     - initialize_ci
+
+  #   outputs:
+  #     matrix: "{\"services\": ${{ steps.reduce.outputs.services }} }"
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v2
+
+  #     - uses: dorny/paths-filter@v2
+  #       id: filter
+  #       with:
+  #         list-files: json
+  #         filters: |
+  #           changed:
+  #           - './*/**'
+  #           - './.github/**'
+  #     - name: Store changed files in file
+  #       run: echo '${{ toJson(steps.filter.outputs) }}' > changes.json
+
+  #     - name: Get changed apps
+  #       id: reduce
+  #       run: |
+  #         echo "${{ toJson(steps.filter.outputs) }}"
+  #         # .changed_files | fromjson | .[] |= sub("(?<first_directory>(?<root2>[/]?)[^/]+)(?<extra_paths>.+)"; "\(.first_directory)") | unique
+  #         # https://jqplay.org/s/HSOZ2Duk7l
+  #         SVC=$(jq -c --raw-output '.changed_files | fromjson | .[] |= sub("(?<filepath>(?<first_directory>(?<root1>[/]?)[^/]+)/(?<second_directory>(?<root2>[/]?)[^/]+)(?<extra_paths>.+))"; "\(.first_directory)") | unique' changes.json)
+  #         echo "$APPS"
+  #         echo "::set-output name=services::${SVC}"
+
+  # build:
+  #   name: Build
+  #   runs-on: ubuntu-20.04
+  #   needs:
+  #     - changes
+  #   strategy:
+  #     matrix: ${{ fromJson(needs.changes.outputs.matrix) }}
+  #     fail-fast: false
+  #   if: "!contains(github.event.head_commit.message, '[ci-skip]')"
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v2
