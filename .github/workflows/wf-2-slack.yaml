@@ -44,7 +44,7 @@ jobs:
           slack_bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
           step: "pr"
           status: "In Progress"
-          color: "dbab09"
+          color:  "d92121" #dbab09"
           channel_id: "C03C0QXKQCQ"
           url: "${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
           info_key: "docker image"
