@@ -45,7 +45,7 @@ jobs:
           status: "In Progress"
           color: "dbab09"
           channel_id: "C03C0QXKQCQ"
-          #update_ts: 
+          url: "${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
 
 
       - name: set  event-type
@@ -64,7 +64,7 @@ jobs:
           color: "28a745"
           channel_id: "C03C0QXKQCQ"
           update_ts: "${{ steps.notify.outputs.ts }}"
-
+          url: "${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
 
       # - name: Post to a Slack channel
       #   id: slack

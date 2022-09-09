@@ -21,6 +21,10 @@ inputs:
     description: 'slack message ts to update '
     required: false
     default: ""
+  url:
+    description: 'repo url'
+    required: false
+    default: ""
 
 outputs:
   ts:
@@ -72,6 +76,11 @@ runs:
                   "title": "Status",
                   "short": true,
                   "value": "${{ inputs.status }}"
+                },
+                {
+                  "title": "Status",
+                  "short": false,
+                  "value": "${{ inputs.url }}"
                 }
               ]
             }
