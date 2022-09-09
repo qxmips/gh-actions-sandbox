@@ -47,6 +47,25 @@ jobs:
           channel_id: "C03C0QXKQCQ"
           #update_ts: 
 
+
+      - name: set  event-type
+        run: |
+          sleep  15
+  
+
+      - name: slack notify
+        id: notify_2
+        uses: ./.github/actions/slack-notify
+        with:
+          github_clean_ref_name: ${{ steps.global_var.outputs.github_clean_ref_name }}
+          slack_bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
+          step: "init"
+          status: "Completed"
+          color: "28a745"
+          channel_id: "C03C0QXKQCQ"
+          update_ts: "${{ steps.notify.outputs.ts }}"
+
+
       # - name: Post to a Slack channel
       #   id: slack
       #   if:  github.event_name == 'push' &&  contains(fromJson('["refs/heads/master", "refs/heads/main"]'), github.ref)
