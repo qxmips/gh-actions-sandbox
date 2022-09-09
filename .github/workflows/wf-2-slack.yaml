@@ -36,6 +36,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: slack notify
+        if: always() &&  contains(fromJson('["refs/heads/master", "refs/heads/main"]'), github.ref)
         id: notify
         uses: ./.github/actions/slack-notify
         with:
