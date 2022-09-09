@@ -45,7 +45,7 @@ jobs:
               "text": "CI for  <${{ github.event.pull_request.html_url || github.event.head_commit.url }} | ${{ github.event.repository.name }} >",
               "attachments": [
                 {
-                  "pretext": "Initiator: ${{ github.actor }}\n ${GITHUB_REF}",
+                  "pretext": "Initiator: ${{ github.actor }}\nref:${{ github.head_ref || github.ref }}",
                   "color": "dbab09",
                   "fields": [
                     {
