@@ -78,8 +78,8 @@ runs:
                   "value": "${{ inputs.status }}"
                 },
                 {
-                  "title": "Status",
-                  "short": false,
+                  "title": "url",
+                  "short": true,
                   "value": "${{ inputs.url }}"
                 }
               ]
