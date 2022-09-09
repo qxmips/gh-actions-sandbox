@@ -25,6 +25,14 @@ inputs:
     description: 'repo url'
     required: false
     default: ""
+  info_key:
+    description: 'additinal info field name'
+    required: false
+    default: ""
+  info_val:
+    description: 'additinal info value'
+    required: false
+    default: ""
 
 outputs:
   ts:
@@ -81,6 +89,11 @@ runs:
                   "title": "url",
                   "short": true,
                   "value": "${{ inputs.url }}"
+                },
+                {
+                  "title": "${{ inputs.info_key }}",
+                  "short": true,
+                  "value": "${{ inputs.info_val }}"
                 }
               ]
             }

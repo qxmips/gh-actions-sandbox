@@ -36,17 +36,19 @@ jobs:
         uses: actions/checkout@v2
 
       - name: slack notify
-        if: always() &&  contains(fromJson('["refs/heads/master", "refs/heads/main"]'), github.ref)
+        if: always() #&&  contains(fromJson('["refs/heads/master", "refs/heads/main"]'), github.ref)
         id: notify
         uses: ./.github/actions/slack-notify
         with:
           github_clean_ref_name: ${{ steps.global_var.outputs.github_clean_ref_name }}
           slack_bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
-          step: "init"
+          step: "pr"
           status: "In Progress"
-          color: "dbab09"
+          color:  "d92121" #dbab09"
           channel_id: "C03C0QXKQCQ"
           url: "${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+          info_key: "docker image"
+          info_val: "adfasf/dsfsdf:v0.0.01"
 
 
       # - name: set  event-type
