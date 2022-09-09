@@ -32,40 +32,53 @@ jobs:
         run: |
           echo "$GITHUB_CONTEXT"
 
-      - name: Post to a Slack channel
-        id: slack
-        if:  github.event_name == 'push' &&  contains(fromJson('["refs/heads/master", "refs/heads/main"]'), github.ref)
-        uses: slackapi/slack-github-action@v1.21.0
+
+      - name: slack notify
+        id: notify
+        uses: ./.github/actions/slack-notify
         with:
-          # Slack channel id, channel name, or user id to post message.
-          # See also: https://api.slack.com/methods/chat.postMessage#channels
-          channel-id: 'C03C0QXKQCQ'
-          # For posting a rich message using Block Kit
-          update-ts: ""
-          payload: |
-            {
-              "text": "*CI for  <${{ github.event.pull_request.html_url || github.event.head_commit.url }} | ${{ github.event.repository.name }}>*",
-              "attachments": [
-                {
-                  "pretext": "*Initiator:* ${{ github.actor }}\n",
-                  "color": "dbab09",
-                  "fields": [
-                    {
-                      "title": "Step",
-                      "short": true,
-                      "value": "test"
-                    },
-                    {
-                      "title": "Status",
-                      "short": true,
-                      "value": "In Progress"
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          github_clean_ref_name: ${{ steps.global_var.outputs.github_clean_ref_name }}
+          slack_bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
+          step: "init"
+          status: "In Progress"
+          color: "dbab09"
+          channel_id: "C03C0QXKQCQ"
+          #update_ts: 
+
+      # - name: Post to a Slack channel
+      #   id: slack
+      #   if:  github.event_name == 'push' &&  contains(fromJson('["refs/heads/master", "refs/heads/main"]'), github.ref)
+      #   uses: slackapi/slack-github-action@v1.21.0
+      #   with:
+      #     # Slack channel id, channel name, or user id to post message.
+      #     # See also: https://api.slack.com/methods/chat.postMessage#channels
+      #     channel-id: 'C03C0QXKQCQ'
+      #     # For posting a rich message using Block Kit
+      #     update-ts: ""
+      #     payload: |
+      #       {
+      #         "text": "*CI for  <${{ github.event.pull_request.html_url || github.event.head_commit.url }} | ${{ github.event.repository.name }}>*",
+      #         "attachments": [
+      #           {
+      #             "pretext": "*Initiator:* ${{ github.actor }}\n",
+      #             "color": "dbab09",
+      #             "fields": [
+      #               {
+      #                 "title": "Step",
+      #                 "short": true,
+      #                 "value": "test"
+      #               },
+      #               {
+      #                 "title": "Status",
+      #                 "short": true,
+      #                 "value": "In Progress"
+      #               }
+      #             ]
+      #           }
+      #         ]
+      #       }
+      #   env:
+      #     SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
 
   # changes:

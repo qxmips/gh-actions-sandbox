@@ -1,0 +1,76 @@
+name: 'slack notify'
+description: 'send slack notifications'
+inputs:
+  slack_bot_token:
+    description: 'SLACK_BOT_TOKEN'
+    required: true
+  step:
+    description: 'step name'
+    required: true
+  status:
+    description: 'status'
+    required: true
+  color:
+    description: 'message color'
+    required: false
+    default:  "dbab09"
+  channel_id:
+    description: 'slack channel id'
+    required: true
+  update_ts:
+    description: 'slack message ts to update '
+    required: false
+    default: ""
+
+
+runs:
+  using: "composite"
+  steps:
+
+  # - name: set  event-type
+  #   id: event-type
+  #   run: |
+  #     if [[ ${GITHUB_REF} == 'refs/heads/${{ inputs.prod_branch }}' ]]
+  #     then
+  #       export event_type=release
+  #     elif [[ ${GITHUB_REF} == 'refs/heads/${{ inputs.dev_branch }}' ]]
+  #     then
+  #       export event_type=rolling
+  #     else
+  #       export event_type=none
+  #     fi
+  #     echo  ::set-output name=event-type::$event_type
+  #   shell: bash 
+
+  - name: Post to a Slack channel
+    uses: slackapi/slack-github-action@v1.21.0
+    with:
+      # Slack channel id, channel name, or user id to post message.
+      # See also: https://api.slack.com/methods/chat.postMessage#channels
+      channel-id: ${{ inputs.channel_id }}
+      # For posting a rich message using Block Kit
+      update-ts: ${{ inputs.update_ts }}
+      payload: |
+        {
+          "text": "*CI for  <${{ github.event.pull_request.html_url || github.event.head_commit.url }} | ${{ github.event.repository.name }}>*",
+          "attachments": [
+            {
+              "pretext": "*Initiator:* ${{ github.actor }}\n",
+              "color": "${{ inputs.color }}",
+              "fields": [
+                {
+                  "title": "Step",
+                  "short": true,
+                  "value": "${{ inputs.step }}"
+                },
+                {
+                  "title": "Status",
+                  "short": true,
+                  "value": "${{ inputs.status }}"
+                }
+              ]
+            }
+          ]
+        }
+    env:
+      SLACK_BOT_TOKEN: ${{ inputs.slack_bot_token }}
