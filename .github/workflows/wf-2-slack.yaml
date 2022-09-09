@@ -32,6 +32,8 @@ jobs:
         run: |
           echo "$GITHUB_CONTEXT"
 
+      - name: Checkout
+        uses: actions/checkout@v2
 
       - name: slack notify
         id: notify
