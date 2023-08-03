@@ -8,8 +8,8 @@ on:
         required: true
 
   push:
-    branches:
-      - '**'
+ #   branches:
+ #     - '**'
   pull_request:
     branches:
       - '**'
