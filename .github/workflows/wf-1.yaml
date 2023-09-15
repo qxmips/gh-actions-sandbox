@@ -6,10 +6,6 @@ on:
       modules:
         description: 'List the modules to build, white space delimited'
         required: true
-
-#   push:
-#  #   branches:
-#  #     - '**'
   pull_request:
     branches:
       - main
