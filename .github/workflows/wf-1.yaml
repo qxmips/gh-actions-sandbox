@@ -6,13 +6,9 @@ on:
       modules:
         description: 'List the modules to build, white space delimited'
         required: true
-
-  push:
- #   branches:
- #     - '**'
   pull_request:
     branches:
-      - '**'
+      - main
 
 concurrency: 
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }} 
