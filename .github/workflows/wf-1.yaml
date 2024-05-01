@@ -54,7 +54,6 @@ jobs:
             echo "pr_branch=$LATEST_PR" >> $GITHUB_OUTPUT
            fi
 
-
       - uses: jwalton/gh-find-current-pr@v1
         id: findPr
         with:
