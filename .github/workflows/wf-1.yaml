@@ -12,15 +12,30 @@ on:
  #     - '**'
   pull_request:
     branches:
-      - '**'
+      - master
+    types:
+      - closed
 
 
-      
+
 concurrency: 
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }} 
   cancel-in-progress: true
 
 jobs:
+  check-merged:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Get Merged Branch Name
+        run: echo "Merged branch is ${{ github.event.pull_request.head.ref }}"
+
+      - name: Do something with the branch name
+        run: echo "You can use the branch name in other steps like this."
+
   initialize_ci:
     runs-on: ubuntu-20.04
     outputs:
