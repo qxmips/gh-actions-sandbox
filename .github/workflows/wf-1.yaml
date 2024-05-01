@@ -7,7 +7,7 @@ on:
         description: 'List the modules to build, white space delimited'
         required: true
 
-  # push:
+  push:
  #   branches:
  #     - '**'
   pull_request:
@@ -17,24 +17,13 @@ on:
       - closed
 
 
+
 concurrency: 
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }} 
   cancel-in-progress: true
 
 jobs:
-  check-merged:
-    runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-
-      - name: Get Merged Branch Name
-        run: echo "Merged branch is ${{ github.event.pull_request.head.ref }}"
-
-      - name: Do something with the branch name
-        run: echo "You can use the branch name in other steps like this."
-
+  
   initialize_ci:
     runs-on: ubuntu-20.04
     outputs:
@@ -47,7 +36,12 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: |
           echo "$GITHUB_CONTEXT"
-    
+
+      - id: pr
+        uses: actions-ecosystem/action-get-merged-pull-request@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: jwalton/gh-find-current-pr@v1
         id: findPr
         with:
