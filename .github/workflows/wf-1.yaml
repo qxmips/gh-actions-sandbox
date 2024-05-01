@@ -36,11 +36,24 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: |
           echo "$GITHUB_CONTEXT"
+    
+      - name: pr
+        id: pr
+        run: |
+           CURRENT_BRANCH=${GITHUB_REF#refs/heads/}
+           LATEST_PR=$(gh pr list --state merged --base $CURRENT_BRANCH --limit 1 | awk '{print $3}')
+           LATEST_COMMIT=$(git rev-parse HEAD)
+           LATEST_PR_COMMIT=$(gh pr list --state merged --base $CURRENT_BRANCH --json number,title,body,labels,assignees,mergeCommit |jq -r '.[0].mergeCommit.oid')
+           echo "LATEST_PR=$LATEST_PR"
+            echo "LATEST_COMMIT=$LATEST_COMMIT"
+            echo "LATEST_PR_COMMIT=$LATEST_PR_COMMIT"
+           if [ "$LATEST_COMMIT" != "$LATEST_PR_COMMIT" ]; then
+            echo "There have been direct commits to $TARGET_BRANCH after the last pull request was merged."
+           else
+            echo "No direct commits to $TARGET_BRANCH after the last pull request was merged."
+            echo "pr_branch=$LATEST_PR" >> $GITHUB_OUTPUT
+           fi
 
-      - id: pr
-        uses: actions-ecosystem/action-get-merged-pull-request@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: jwalton/gh-find-current-pr@v1
         id: findPr
