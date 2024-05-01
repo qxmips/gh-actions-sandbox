@@ -53,6 +53,8 @@ jobs:
             echo "No direct commits to $TARGET_BRANCH after the last pull request was merged."
             echo "pr_branch=$LATEST_PR" >> $GITHUB_OUTPUT
            fi
+        env:
+          GH_TOKEN : ${{ secrets.GITHUB_TOKEN }}
 
       - uses: jwalton/gh-find-current-pr@v1
         id: findPr
