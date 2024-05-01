@@ -7,7 +7,7 @@ on:
         description: 'List the modules to build, white space delimited'
         required: true
 
-  push:
+  # push:
  #   branches:
  #     - '**'
   pull_request:
@@ -15,7 +15,6 @@ on:
       - master
     types:
       - closed
-
 
 
 concurrency: 
