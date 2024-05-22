@@ -35,14 +35,18 @@ jobs:
     
             - name: true
               id: true
-              if: ${{ fromJson(inputs.Checkbox) == 'true' }}
+              if: ${{ github.event.inputs.Checkbox == 'true' }}
               run: |
                 echo "true"
+                echo ${{ inputs.Checkbox }}
+                echo ${{ github.event.inputs.Checkbox }}
                 echo "true" >> $GITHUB_OUTPUT
 
             - name: false
               id: false
-              if: ${{ inputs.Checkbox == false }}
+              if: ${{ github.event.inputs.Checkbox == 'false' }}
               run: |
                 echo "false"
+                echo ${{ inputs.Checkbox }}
+                echo ${{ github.event.inputs.Checkbox }}
                 echo "false" >> $GITHUB_OUTPUT
