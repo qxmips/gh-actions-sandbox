@@ -35,7 +35,7 @@ jobs:
     
             - name: true
               id: true
-              if: ${{ github.event.inputs.Checkbox == 'true' }}
+              if: ${{ inputs.Checkbox == true }}
               run: |
                 echo "true"
                 echo ${{ inputs.Checkbox }}
@@ -49,4 +49,3 @@ jobs:
                 echo "false"
                 echo ${{ inputs.Checkbox }}
                 echo ${{ github.event.inputs.Checkbox }}
-                echo "false" >> $GITHUB_OUTPUT
