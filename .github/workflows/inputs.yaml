@@ -1,0 +1,48 @@
+---
+name: "Inputs"
+on:
+  workflow_dispatch:
+    inputs:
+      Checkbox:
+          type: boolean
+          required: true
+          default: false
+          description: 'Checkbox'
+
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  id-token: write
+  contents: write
+  issues: write
+  pull-requests: write
+
+
+jobs:
+    job01s:
+        runs-on: ubuntu-20.04
+        steps:
+            - uses: hmarr/debug-action@v2
+        
+            - name: Dump GitHub context
+              env:
+                GITHUB_CONTEXT: ${{ toJson(github) }}
+              run: |
+                echo "$GITHUB_CONTEXT"
+    
+            - name: true
+              id: true
+              if: ${{ inputs.Checkbox == 'true' }}
+              run: |
+                echo "true"
+                echo "true" >> $GITHUB_OUTPUT
+
+            - name: false
+              id: false
+              if: ${{ inputs.Checkbox == 'false' }}
+              run: |
+                echo "false"
+                echo "false" >> $GITHUB_OUTPUT
